@@ -1,0 +1,16 @@
+[Unit]
+Description=Quant Trading Bot (skeleton)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/quant_trading_industry_portfolio
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/home/ubuntu/quant_trading_industry_portfolio/.venv/bin/python bot/paper_trader.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

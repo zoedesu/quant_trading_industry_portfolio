@@ -1,0 +1,38 @@
+# Real-data example (requires internet + `yfinance`).
+# This will download data into data/ on first run.
+
+data:
+  source: "yahoo"
+  symbol: "SPY"
+  start: "2015-01-01"
+  end: null
+  interval: "1d"
+
+execution:
+  fill_price: "next_open"
+  fee_bps: 2
+  slippage_bps: 1
+  max_leverage: 1.0
+  rebalance_every: 5
+
+risk:
+  max_pos_frac: 1.0
+  vol_target_annual: 0.15
+  sizing_method: "ewma"
+  atr_window: 14
+  ewma_lambda: 0.94
+  max_drawdown_stop: 0.25
+
+strategy:
+  name: "ema_trend"
+  params:
+    fast: 20
+    slow: 80
+    threshold: 0.001
+    rebalance_every: 5
+    min_hold: 5
+
+walkforward:
+  train: 504
+  test: 63
+  step: 63

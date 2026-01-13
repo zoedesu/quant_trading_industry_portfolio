@@ -1,0 +1,41 @@
+# Default config uses local CSV (synthetic sample_ohlcv.csv by default).
+# For real data, see config/example_real.yaml
+
+data:
+  source: "csv"           # csv | yahoo
+  path: "data/sample_ohlcv.csv"
+  n: 2600                 # only used if the CSV doesn't exist and we need to generate synthetic data
+  seed: 42
+
+execution:
+  fill_price: "next_open" # next_open or close
+  fee_bps: 10
+  slippage_bps: 5
+  max_leverage: 1.0
+  rebalance_every: 5      # 5 ≈ weekly trading on daily bars
+
+risk:
+  max_pos_frac: 1.0
+  vol_target_annual: 0.20
+  sizing_method: "ewma"   # ewma (recommended) or atr
+  atr_window: 14
+  ewma_lambda: 0.94
+  max_drawdown_stop: 0.30 # stop trading after 30% drawdown
+
+strategy:
+  name: "ema_trend"       # ema_trend or bollinger_mr
+  params:
+    fast: 20
+    slow: 80
+    threshold: 0.001
+    rebalance_every: 5
+    min_hold: 5
+
+walkforward:
+  train: 504              # 2 years of daily bars
+  test: 63                # 1 quarter
+  step: 63
+
+cost_sweep:
+  fee_bps: [0, 2, 5, 10]
+  slippage_bps: [0, 1, 2, 5]

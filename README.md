@@ -1,0 +1,117 @@
+# Quant Trading Industry Portfolio (educational framework)
+
+A small, industry-style Python project that demonstrates an end-to-end workflow:
+
+1. Data preparation (synthetic **or** real market data)
+2. Strategy signal generation (EMA trend or Bollinger mean-reversion)
+3. Backtesting with explicit **gross vs cost vs net** accounting
+4. Walk-forward (rolling) evaluation to check robustness
+5. Cost sensitivity sweep (fees/slippage grid)
+6. Reporting plots (equity, drawdown, trades, gross-vs-net, rolling eval, cost sweep)
+
+This repository is intended for learning, portfolio demonstration, and safe iteration.
+It is **not** investment advice.
+
+---
+
+## Quick start (Windows)
+
+```bat
+py -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+pip install -e .
+run_all.bat
+rolling_eval.bat
+```
+
+Outputs are written to `outputs/`.
+
+---
+
+## Running with real data (Yahoo Finance)
+
+This project supports downloading daily OHLCV via `yfinance` (requires internet).
+
+1. Use the provided config:
+
+```bat
+run_all.bat config\example_real.yaml
+rolling_eval.bat config\example_real.yaml
+```
+
+2. The first step will download the data and save it under `data/` (e.g. `data/SPY_1d.csv`).
+3. All subsequent steps will use that dataset.
+
+If you prefer your own dataset:
+- set `data.source: csv` and point `data.path` to your file.
+- Required columns: `timestamp, open, high, low, close, volume`.
+
+---
+
+## What the backtest is doing (important)
+
+### No lookahead / execution convention
+
+The engine follows the standard daily-bar convention:
+
+- You decide the exposure at time **t** using information up to **t**
+- You hold that exposure during **t → t+1** return
+
+So:
+- `pnl_gross[t] = exposure[t-1] * equity[t-1] * return[t]`
+- `pnl_net[t]   = pnl_gross[t] - costs[t]`
+
+This avoids “future function” / lookahead bias.
+
+### Gross vs net attribution
+
+The equity file (`outputs/equity_curve.csv`) includes:
+- `pnl_gross`, `cost`, `pnl_net`
+- cumulative sums: `cum_pnl_gross`, `cum_cost`, `cum_pnl_net`
+
+The report plot `outputs/gross_vs_net.png` makes it easy to answer:
+- Does the strategy have *edge* (positive gross)?
+- Or is it only “working” before costs?
+
+---
+
+## Why your original run was not profitable
+
+In your run, you reported:
+- net Sharpe < 0
+- max drawdown around -76%
+
+That is typically caused by a combination of:
+- no real edge in the signal (gross PnL not positive), and/or
+- turnover that makes costs dominate net returns, and/or
+- leverage/vol-targeting amplifying losses in adverse regimes
+
+This updated version makes those failure modes explicit in outputs.
+
+---
+
+## Where to iterate next (most impact)
+
+1. **Edge first:** check `gross_vs_net.png`. If gross is not clearly positive, stop optimizing.
+2. **Reduce churn:** increase `rebalance_every` (e.g. 5 or 10), tighten `threshold` / entry/exit.
+3. **Lower leverage:** keep `max_leverage: 1.0` until the signal is robust.
+4. **Walk-forward:** require median test Sharpe > 0 across windows.
+5. **Stress tests:** run on multiple liquid symbols (SPY, QQQ, IWM, EURUSD=X, BTC-USD, etc.)
+6. **Execution realism:** widen costs, add spread models, and test robustness.
+
+---
+
+## Output files
+
+After `run_all`:
+- `outputs/equity_curve.csv`
+- `outputs/trades.csv`
+- `outputs/metrics.json` and `outputs/metrics_pretty.json`
+- `outputs/equity.png`, `outputs/drawdown.png`, `outputs/trade_hist.png`, `outputs/gross_vs_net.png`
+- `outputs/cost_sweep.csv`, `outputs/cost_sweep.png`
+
+After `rolling_eval`:
+- `outputs/rolling_eval.csv`
+- `outputs/rolling_eval_summary.json`
+- `outputs/rolling_eval.png`
