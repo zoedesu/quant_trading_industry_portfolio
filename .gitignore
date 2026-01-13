@@ -5,3 +5,5 @@ outputs/*
 !outputs/.gitkeep
 *.log
 .DS_Store
+# Build artifacts
+src/*.egg-info/
